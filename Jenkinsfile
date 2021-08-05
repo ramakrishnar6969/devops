@@ -14,7 +14,7 @@ pipeline {
             }
         }
         stage('Upload War To Nexus'){
-            steps{nexusArtifactUploader artifacts: [[artifactId: 'simple-app', classifier: '', file: 'target/simple-app-1.0.0.war', type: 'war']], credentialsId: '', groupId: 'in.javahome', nexusUrl: 'http://34.132.45.21:8081/', nexusVersion: 'nexus3', protocol: 'http', repository: 'http://34.132.45.21:8081/repository/simpleapp-relese/', version: '1.0.0'
+            nexusArtifactUploader artifacts: [[artifactId: 'simple-app', classifier: '', file: 'target/simple-app-1.0.0.war', type: 'war']], credentialsId: '', groupId: 'in.javahome', nexusUrl: '34.132.45.21:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'http://34.132.45.21:8081/repository/simpleapp-relese/', version: '1.0.0'
                 
             }
         }
