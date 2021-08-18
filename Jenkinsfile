@@ -1,22 +1,86 @@
 pipeline {
     agent any
     tools {
-        maven 'maven3'
+        maven 'MAVEN'
     }
-    options {
-        buildDiscarder logRotator(daysToKeepStr: '5', numToKeepStr: '7')
-    }
-    stages{
-        stage('Build'){
+
+    stages {
+
+        stage('Build Maven') {
             steps{
-                 sh script: 'mvn clean package'
-                 archiveArtifacts artifacts: 'target/*.war', onlyIfSuccessful: true
-            }
-        }
-        stage('Upload War To Nexus'){
-            nexusArtifactUploader artifacts: [[artifactId: 'simple-app', classifier: '', file: 'target/simple-app-1.0.0.war', type: 'war']], credentialsId: '', groupId: 'in.javahome', nexusUrl: '34.132.45.21:8081', nexusVersion: 'nexus3', protocol: 'http', repository: 'http://34.132.45.21:8081/repository/simpleapp-relese/', version: '1.0.0'
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'GIT_REPO', url: 'https://github.com/devopshint/jenkins-nexus.git']]])
+
+                sh "mvn -Dmaven.test.failure.ignore=true clean package"
                 
             }
+        }   
+   stage("Publish to Nexus Repository Manager") {
+
+            steps {
+
+                script {
+
+                    pom = readMavenPom file: "pom.xml";
+
+                    filesByGlob = findFiles(glob: "target/*.${pom.packaging}");
+
+                    echo "${filesByGlob[0].name} ${filesByGlob[0].path} ${filesByGlob[0].directory} ${filesByGlob[0].length} ${filesByGlob[0].lastModified}"
+
+                    artifactPath = filesByGlob[0].path;
+
+                    artifactExists = fileExists artifactPath;
+
+                    if(artifactExists) {
+
+                        echo "*** File: ${artifactPath}, group: ${pom.groupId}, packaging: ${pom.packaging}, version ${pom.version}";
+
+                        nexusArtifactUploader(
+                            nexusVersion: 'nexus3',
+                            
+                            protocol: 'http',
+
+                            nexusUrl: '34.67.61.191:8081/',
+
+                            groupId: 'pom.com.mycompany.app',
+
+                            version: 'pom.1.0-SNAPSHOT',
+
+                            repository: 'maven-central-repository',
+
+                            credentialsId: 'NEXUS_CRED',
+
+                            artifacts: [
+
+                                [artifactId: 'pom.my-app',
+
+                                classifier: '',
+
+                                file: "pom.xml,
+
+                                type: pom.packaging],
+
+                                [artifactId: 'pom.my-app',
+
+                                classifier: '',
+
+                                file: "pom.xml",
+
+                                type: "pom"]
+
+                            ]
+
+                        );
+
+                    } else {
+
+                        error "*** File: ${artifactPath}, could not be found";
+
+                    }
+
+                }
+
+            }
+
         }
     }
 }
