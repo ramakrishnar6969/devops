@@ -55,7 +55,7 @@ pipeline {
 
                                 classifier: '',
 
-                                file: "pom.xml,
+                                file: "pom.xml",
 
                                 type: pom.packaging],
 
